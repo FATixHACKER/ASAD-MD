@@ -1,17 +1,18 @@
 export default {
   menuText: `
-╭━━━〔 ⚡ POWER BOT ⚡ 〕━━━╮
+╭━━━〔 ⚡ ASAD-MD⚡ 〕━━━╮
 ┃ 🤖 Status : ONLINE
 ┃ 🧠 Mode   : CONTROLLED
 ┃ 🔐 Security : ACTIVE
 ┃ ⚙️ Engine : Pro-Core
 ╰━━━━━━━━━━━━━━━━━━━━╯
 
-╭──〔 🔥 CORE 〕
+╭──〔 🔥 MENU〕
 │ .alive
 │ .ping
 │ .botinfo
 │ .owner
+| .menu
 ╰────────────
 
 ╭──〔 🛡️ GROUP CONTROL 〕
