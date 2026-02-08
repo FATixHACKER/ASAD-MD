@@ -4,6 +4,8 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys";
 import P from "pino";
 
+let pairingRequested = false; // 🔒 LOCK
+
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState("session");
 
@@ -15,15 +17,16 @@ async function startBot() {
 
   sock.ev.on("creds.update", saveCreds);
 
-  // ❗ PAIRING CODE — ONLY ONCE
-  if (!state.creds.registered) {
+  // 🔑 PAIRING — ONLY ONCE (NO LOOP)
+  if (!state.creds.registered && !pairingRequested) {
+    pairingRequested = true;
     try {
       const code = await sock.requestPairingCode(
         process.env.PHONE_NUMBER
       );
       console.log("🔑 PAIRING CODE:", code);
     } catch (e) {
-      console.log("❌ Pairing already requested, wait...");
+      console.log("❌ Pairing request failed, wait...");
     }
   }
 
@@ -36,13 +39,18 @@ async function startBot() {
       const reason =
         lastDisconnect?.error?.output?.statusCode;
 
-      // ❌ logged out hua to ruk jao
+      // ❌ LOGGED OUT → STOP COMPLETELY
       if (reason === DisconnectReason.loggedOut) {
-        console.log("❌ Logged out. Stop retrying.");
+        console.log("❌ Logged out. Delete session & restart.");
         return;
       }
 
-      // 🔁 warna reconnect
+      // ⛔ pairing pending hai → reconnect mat karo
+      if (!state.creds.registered) {
+        console.log("⏳ Waiting for pairing to complete...");
+        return;
+      }
+
       console.log("🔁 Reconnecting...");
       startBot();
     }
