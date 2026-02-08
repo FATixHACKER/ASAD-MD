@@ -3,8 +3,7 @@ import makeWASocket, {
   DisconnectReason
 } from "@whiskeysockets/baileys";
 import P from "pino";
-
-let pairingRequested = false; // 🔒 LOCK
+import { handleMessage } from "./handlers/message.js";
 
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState("session");
@@ -12,51 +11,30 @@ async function startBot() {
   const sock = makeWASocket({
     auth: state,
     logger: P({ level: "silent" }),
+    printQRInTerminal: true, // ✅ QR
     browser: ["PowerBot", "Chrome", "1.0"]
   });
 
   sock.ev.on("creds.update", saveCreds);
 
-  // 🔑 PAIRING — ONLY ONCE (NO LOOP)
-  if (!state.creds.registered && !pairingRequested) {
-    pairingRequested = true;
-    try {
-      const code = await sock.requestPairingCode(
-        process.env.PHONE_NUMBER
-      );
-      console.log("🔑 PAIRING CODE:", code);
-    } catch (e) {
-      console.log("❌ Pairing request failed, wait...");
-    }
-  }
-
   sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
     if (connection === "open") {
-      console.log("✅ Bot Connected Successfully");
+      console.log("✅ Bot Connected");
     }
-
-    if (connection === "close") {
-      const reason =
-        lastDisconnect?.error?.output?.statusCode;
-
-      // ❌ LOGGED OUT → STOP COMPLETELY
-      if (reason === DisconnectReason.loggedOut) {
-        console.log("❌ Logged out. Delete session & restart.");
-        return;
-      }
-
-      // ⛔ pairing pending hai → reconnect mat karo
-      if (!state.creds.registered) {
-        console.log("⏳ Waiting for pairing to complete...");
-        return;
-      }
-
+    if (
+      connection === "close" &&
+      lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
+    ) {
       console.log("🔁 Reconnecting...");
       startBot();
     }
   });
 
-  sock.ev.on("messages.upsert", () => {});
+  sock.ev.on("messages.upsert", async ({ messages }) => {
+    const msg = messages[0];
+    if (!msg.message) return;
+    await handleMessage(sock, msg);
+  });
 }
 
 startBot();
