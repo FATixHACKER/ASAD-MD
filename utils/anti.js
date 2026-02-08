@@ -6,10 +6,8 @@ export async function antiCheck(sock, msg, text) {
 
   if (/https?:\/\//i.test(text)) {
     await sock.sendMessage(jid, { delete: msg.key });
-
     const w = (warns.get(user) || 0) + 1;
     warns.set(user, w);
-
     if (w >= 2) {
       await sock.groupParticipantsUpdate(jid, [user], "remove");
       warns.delete(user);
