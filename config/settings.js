@@ -4,6 +4,6 @@ export default {
     core: true,
     group: true,
     tools: true,
-    download: true
+    download: false   // heavy OFF by default
   }
 };
