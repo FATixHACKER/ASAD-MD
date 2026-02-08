@@ -1,16 +1,18 @@
-let busy = false;
-const q = [];
+const warns = new Map();
 
-export default function queue(task) {
-  q.push(task);
-  run();
-}
+export async function antiCheck(sock, msg, text) {
+  const jid = msg.key.remoteJid;
+  const user = msg.key.participant;
 
-async function run() {
-  if (busy) return;
-  busy = true;
-  while (q.length) {
-    await q.shift()();
+  if (/https?:\/\//i.test(text)) {
+    await sock.sendMessage(jid, { delete: msg.key });
+    const w = (warns.get(user) || 0) + 1;
+    warns.set(user, w);
+    if (w >= 2) {
+      await sock.groupParticipantsUpdate(jid, [user], "remove");
+      warns.delete(user);
+    }
+    return true;
   }
-  busy = false;
+  return false;
 }
