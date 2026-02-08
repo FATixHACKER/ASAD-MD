@@ -1,0 +1,48 @@
+export default {
+  menuText: `
+╭━━━〔 ⚡ POWER BOT ⚡ 〕━━━╮
+┃ 🤖 Status : ONLINE
+┃ 🧠 Mode   : CONTROLLED
+┃ 🔐 Security : ACTIVE
+┃ ⚙️ Engine : Pro-Core
+╰━━━━━━━━━━━━━━━━━━━━╯
+
+╭──〔 🔥 CORE 〕
+│ .alive
+│ .ping
+│ .botinfo
+│ .owner
+╰────────────
+
+╭──〔 🛡️ GROUP CONTROL 〕
+│ .kick @user
+│ .add @user
+│ .promote @user
+│ .demote @user
+│ .mute / .unmute
+│ .tagall
+╰────────────
+
+╭──〔 🧰 TOOLS 〕
+│ .sticker
+│ .qr
+│ .calc
+│ .pdf
+╰────────────
+
+╭──〔 ⬇️ DOWNLOAD (Admin ON) 〕
+│ .ytmp3
+│ .ytmp4
+│ .tiktok
+│ .insta
+╰────────────
+
+╭──〔 ⚙️ CONTROL 〕
+│ .mode status
+│ .mode download on/off
+╰────────────
+
+⚡ POWER • CONTROL • STABILITY
+👑 Developed by JANI
+`
+};
