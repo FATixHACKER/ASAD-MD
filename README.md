@@ -1,5 +1,4 @@
-# ASAD-MD
-
+# Power WhatsApp Bot
 
 - Pairing Code Login
 - Anti-link + auto kick
