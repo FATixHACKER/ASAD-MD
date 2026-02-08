@@ -11,19 +11,28 @@ async function startBot() {
   const sock = makeWASocket({
     auth: state,
     logger: P({ level: "silent" }),
-    printQRInTerminal: true, // ✅ QR
     browser: ["PowerBot", "Chrome", "1.0"]
   });
 
   sock.ev.on("creds.update", saveCreds);
 
-  sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
-    if (connection === "open") {
-      console.log("✅ Bot Connected");
+  // 🔥 QR HANDLE PROPER WAY
+  sock.ev.on("connection.update", (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+      console.log("📱 Scan this QR code:\n");
+      console.log(qr);
     }
+
+    if (connection === "open") {
+      console.log("✅ Bot Connected Successfully");
+    }
+
     if (
       connection === "close" &&
-      lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
+      lastDisconnect?.error?.output?.statusCode !==
+        DisconnectReason.loggedOut
     ) {
       console.log("🔁 Reconnecting...");
       startBot();
