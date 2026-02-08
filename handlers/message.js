@@ -4,6 +4,7 @@ import owner from "../config/owner.js";
 import queue from "../utils/queue.js";
 import { antiCheck } from "../utils/anti.js";
 import fs from "fs";
+import { exec } from "child_process";
 
 export async function handleMessage(sock, msg) {
   const jid = msg.key.remoteJid;
@@ -16,7 +17,7 @@ export async function handleMessage(sock, msg) {
   const isGroup = jid.endsWith("@g.us");
   const isOwner = sender.includes(owner);
 
-  // 🛡️ ANTI SYSTEM
+  // 🛡️ Anti system
   if (isGroup) {
     const blocked = await antiCheck(sock, msg, text);
     if (blocked) return;
@@ -25,14 +26,16 @@ export async function handleMessage(sock, msg) {
   // 📜 MENU (IMAGE + TEXT)
   if (text === ".menu") {
     return sock.sendMessage(jid, {
-      image: fs.readFileSync("./media/menu.jpg"),
-      caption: messages.menuText
+      image: fs.readFileSync(
+        new URL("../media/menu.jpg", import.meta.url)
+      ),
+      caption: messages.menu
     });
   }
 
   // CORE
   if (text === ".alive")
-    return sock.sendMessage(jid, { text: "🤖 Power Bot Alive ✅" });
+    return sock.sendMessage(jid, { text: "🤖 Bot Alive & Stable ✅" });
 
   if (text === ".ping")
     return sock.sendMessage(jid, { text: "🏓 Pong" });
@@ -43,7 +46,7 @@ export async function handleMessage(sock, msg) {
   if (text === ".owner")
     return sock.sendMessage(jid, { text: "👑 Owner: JANI" });
 
-  // MODE CONTROL (OWNER)
+  // MODE CONTROL
   if (isOwner && text === ".mode status")
     return sock.sendMessage(jid, {
       text: JSON.stringify(settings.mode, null, 2)
@@ -59,31 +62,22 @@ export async function handleMessage(sock, msg) {
     return sock.sendMessage(jid, { text: "⛔ Download OFF" });
   }
 
-  // GROUP
-  if (settings.mode.group && text.startsWith(".kick"))
-    return sock.sendMessage(jid, { text: "👢 Kick ready" });
-
-  if (settings.mode.group && text === ".tagall")
-    return sock.sendMessage(jid, { text: "📢 Tagall executed" });
-
-  // TOOLS
-  if (settings.mode.tools && text.startsWith(".calc"))
-    return sock.sendMessage(jid, { text: "🧮 Calculator ready" });
-
-  if (settings.mode.tools && text === ".qr")
-    return sock.sendMessage(jid, { text: "📷 QR generator ready" });
-
-  // DOWNLOAD (CONTROLLED)
-  if (text.startsWith(".ytmp3")) {
-    if (!settings.mode.download)
+  // 🔊 TTS COMMAND
+  if (text.startsWith(".tts")) {
+    const t = text.replace(".tts", "").trim();
+    if (!t)
       return sock.sendMessage(jid, {
-        text: "⛔ Download OFF (admin only)"
+        text: "Use: .tts your text"
       });
 
-    return queue(async () => {
+    const file = "./tts.mp3";
+    exec(`gtts-cli "${t}" --output ${file}`, async () => {
       await sock.sendMessage(jid, {
-        text: "⬇️ YTMP3 processing..."
+        audio: fs.readFileSync(file),
+        mimetype: "audio/mpeg",
+        ptt: true
       });
+      fs.unlinkSync(file);
     });
   }
 }
